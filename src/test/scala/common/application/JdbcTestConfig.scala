@@ -1,8 +1,9 @@
 package es.eriktorr
-package application
+package common.application
 
-import application.JdbcConfig.{ConnectUrl, Password, Username}
 import common.Secret
+import common.application.JdbcConfig.Password.given
+import common.application.JdbcConfig.{ConnectUrl, Password, Username}
 
 import cats.collections.Range
 
@@ -11,11 +12,11 @@ enum JdbcTestConfig(val config: JdbcConfig, val database: String):
       extends JdbcTestConfig(
         JdbcConfig.postgres(
           Range(JdbcTestConfig.minConnections, JdbcTestConfig.maxConnections),
-          ConnectUrl.unsafeFrom(
+          ConnectUrl.applyUnsafe(
             s"jdbc:postgresql://${JdbcTestConfig.postgresHost}/${JdbcTestConfig.bankAccountDatabase}",
           ),
-          Secret(Password.unsafeFrom(JdbcTestConfig.postgresPassword)),
-          Username.unsafeFrom(JdbcTestConfig.postgresUsername),
+          Secret(Password.applyUnsafe(JdbcTestConfig.postgresPassword)),
+          Username.applyUnsafe(JdbcTestConfig.postgresUsername),
         ),
         JdbcTestConfig.bankAccountDatabase,
       )

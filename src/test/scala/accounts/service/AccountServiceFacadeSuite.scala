@@ -2,12 +2,12 @@ package es.eriktorr
 package accounts.service
 
 import accounts.service.AccountServiceFacadeSuite.testScenarioGen
-import application.JdbcTestConfig
+import common.application.JdbcTestConfig
 import common.db.PostgresTestTransactor
+import spec.*
 import spec.FakeClock.ClockState
 import spec.FakeConsole.ConsoleState
 import spec.FakeUUIDGen.UUIDGenState
-import spec.*
 
 import cats.effect.{IO, Ref, Resource}
 import org.scalacheck.Gen

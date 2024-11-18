@@ -1,5 +1,5 @@
 package es.eriktorr
-package application.argument
+package common.application.argument
 
 import cats.collections.Range
 import cats.data.{Validated, ValidatedNel}

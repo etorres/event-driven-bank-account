@@ -13,7 +13,7 @@ trait ValidatedNecExtensions[A]:
     def either: Either[? <: Throwable, A]
     def eitherMessage: Either[String, A]
     def orFail: A
-    def validated: IO[A]
+    def toIO: IO[A]
 
 object ValidatedNecExtensions:
   type AllErrorsOr[A] = ValidatedNec[String, A]
@@ -31,6 +31,6 @@ object ValidatedNecExtensions:
         case Validated.Valid(value) => value
         case Validated.Invalid(errors) => throw ValidationErrors(errors)
 
-      def validated: IO[A] = maybeA match
+      def toIO: IO[A] = maybeA match
         case Validated.Valid(value) => IO.pure(value)
         case Validated.Invalid(errors) => IO.raiseError(ValidationErrors(errors))

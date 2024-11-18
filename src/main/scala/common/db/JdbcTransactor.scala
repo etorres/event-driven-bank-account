@@ -1,7 +1,7 @@
 package es.eriktorr
 package common.db
 
-import application.JdbcConfig
+import common.application.JdbcConfig
 
 import cats.effect.{IO, Resource}
 import com.zaxxer.hikari.HikariConfig

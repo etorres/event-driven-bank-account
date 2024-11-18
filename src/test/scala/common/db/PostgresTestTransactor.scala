@@ -1,7 +1,7 @@
 package es.eriktorr
 package common.db
 
-import application.JdbcTestConfig
+import common.application.JdbcTestConfig
 
 import cats.effect.{IO, Resource}
 import cats.implicits.toFoldableOps
