@@ -10,7 +10,9 @@ final class FakeAccountServiceFacade(stateRef: Ref[IO, AccountServiceFacadeState
     uuidGen: UUIDGen[IO],
 ) extends AccountServiceFacade:
   override def close(accountId: String): IO[Unit] =
-    IO.raiseError(IllegalArgumentException("not implemented"))
+    stateRef.update(currentState =>
+      currentState.copy(currentState.accounts.filterNot { case (id, _) => id == accountId }),
+    )
 
   override def createAccount: IO[String] = for
     accountId <- uuidGen.randomUUID.map(_.toString)

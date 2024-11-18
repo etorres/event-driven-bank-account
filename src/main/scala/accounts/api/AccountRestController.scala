@@ -14,10 +14,16 @@ final class AccountRestController(accountServiceFacade: AccountServiceFacade)(us
     logger: SelfAwareStructuredLogger[IO],
 ) extends BaseRestController:
   override val routes: Option[HttpRoutes[IO]] = Some(
-    HttpRoutes.of[IO] { case request @ POST -> Root / "accounts" =>
-      (for
-        accountId <- accountServiceFacade.createAccount
-        response <- Ok(CreateAccountResponse(accountId))
-      yield response).handleErrorWith(contextFrom(request))
+    HttpRoutes.of[IO] {
+      case request @ DELETE -> Root / "accounts" / accountId =>
+        (for
+          _ <- accountServiceFacade.close(accountId)
+          response <- NoContent()
+        yield response).handleErrorWith(contextFrom(request))
+      case request @ POST -> Root / "accounts" =>
+        (for
+          accountId <- accountServiceFacade.createAccount
+          response <- Ok(CreateAccountResponse(accountId))
+        yield response).handleErrorWith(contextFrom(request))
     },
   )

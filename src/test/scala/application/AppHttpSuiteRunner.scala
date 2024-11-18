@@ -16,6 +16,7 @@ import org.http4s.{EntityDecoder, Request, Status}
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 object AppHttpSuiteRunner:
@@ -59,6 +60,17 @@ object AppHttpSuiteRunner:
       status = response.status
       body <- status match
         case Status.Ok => response.as[A]
+        case Status.NoContent =>
+          for
+            entityBody <- response.as[String]
+            body <-
+              if entityBody.isEmpty then
+                response
+                  .copy(body = fs2.Stream.emits[IO, Byte]("{}".getBytes(StandardCharsets.UTF_8).nn))
+                  .as[A]
+              else
+                IO.raiseError[A](IllegalStateException(s"No content expected but got: $entityBody"))
+          yield body
         case other =>
           IO.raiseError(IllegalStateException(s"Unexpected response status: ${other.code}"))
       _ <- IO.fromOption(for

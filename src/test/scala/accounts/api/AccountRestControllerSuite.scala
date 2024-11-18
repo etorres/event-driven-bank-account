@@ -1,8 +1,8 @@
 package es.eriktorr
 package accounts.api
 
-import accounts.api.AccountRestControllerSuite.testCaseGen
-import accounts.service.FakeAccountServiceFacade.FakeAccount
+import accounts.api.AccountRestControllerSuite.{createTestCaseGen, deleteTestCaseGen}
+import accounts.service.FakeAccountServiceFacade.{FakeAccount, FakeOperation}
 import application.AppHttpSuite
 import application.AppHttpSuite.TestCase
 import application.AppHttpSuiteRunner.{runWith, AppHttpState}
@@ -16,7 +16,7 @@ import org.scalacheck.effect.PropF.forAllF
 
 final class AccountRestControllerSuite extends AppHttpSuite:
   test("should create new accounts"):
-    forAllF(testCaseGen): testCase =>
+    forAllF(createTestCaseGen): testCase =>
       given Decoder[CreateAccountResponse] = CreateAccountResponse.createAccountResponseJsonDecoder
       (for (result, finalState) <- runWith(
           testCase.initialState,
@@ -28,8 +28,23 @@ final class AccountRestControllerSuite extends AppHttpSuite:
         assertEquals(result, Right(testCase.expectedResponse))
       }
 
+  test("should delete accounts"):
+    forAllF(deleteTestCaseGen): testCase =>
+      given Decoder[Unit] = Decoder.decodeUnit
+      (for (result, finalState) <- runWith(
+          testCase.initialState,
+          Request(
+            method = Method.DELETE,
+            uri = Uri.unsafeFromString(s"/api/v1/accounts/${testCase.request}"),
+          ),
+        )
+      yield (result, finalState)).map { case (result, finalState) =>
+        assertEquals(finalState, testCase.expectedState)
+        assertEquals(result, Right(testCase.expectedResponse))
+      }
+
 object AccountRestControllerSuite:
-  private val testCaseGen = for
+  private val createTestCaseGen = for
     accountId <- Gen.uuid
     initialState = AppHttpState.empty.setUuids(List(accountId))
     expectedState = initialState
@@ -41,3 +56,12 @@ object AccountRestControllerSuite:
     (),
     (CreateAccountResponse(accountId.toString), Status.Ok),
   )
+
+  private val deleteTestCaseGen = for
+    accountId <- Gen.uuid
+    operations <- Gen.listOf(Gen.choose(-1000d, 1000d).map(x => FakeOperation(x)))
+    initialState = AppHttpState.empty.setAccounts(
+      Map(accountId.toString -> FakeAccount(0d, operations)),
+    )
+    expectedState = initialState.setAccounts(Map.empty)
+  yield TestCase(initialState, expectedState, accountId, ((), Status.NoContent))
